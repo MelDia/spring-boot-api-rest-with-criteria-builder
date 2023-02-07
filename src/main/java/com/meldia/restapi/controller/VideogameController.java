@@ -25,6 +25,17 @@ public class VideogameController {
 		
 	}
 	
+	@PostMapping(value = "/filters", produces = "application/json")
+	public ResponseEntity<VideogameResponse> filters(@RequestBody VideogameRequest rq) {
+		VideogameResponse response = service.filters(rq);
+		if(response.getResponseCode().equals("1")) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					 			 .body(response);
+		}	
+		return ResponseEntity.status(HttpStatus.OK)
+							 .body(response);
+	}
+	
 	@PostMapping(value = "/add", produces = "application/json")
 	public ResponseEntity<VideogameResponse> addProduct(@RequestBody VideogameRequest rq) {		
 		VideogameResponse response = service.addProduct(rq);		

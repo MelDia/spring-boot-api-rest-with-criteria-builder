@@ -3,6 +3,10 @@ package com.meldia.restapi.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,6 +22,50 @@ public class VideogameServiceImpl implements VideogameService {
 
 	@Autowired
 	public VideogameRepository repository;
+	
+	@Autowired
+	public EntityManager em;
+	
+	// FILTERS 
+	@Override
+	public VideogameResponse filters(VideogameRequest rq) {
+		
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<VideogameModel> cq = cb.createQuery(VideogameModel.class);
+		Root<VideogameModel> root = cq.from(VideogameModel.class);
+		
+		List<Predicate> filters = new ArrayList<>();
+		
+		try {			
+			if(StringUtils.isNotBlank(rq.getName()) && StringUtils.isNotEmpty(rq.getName())) {
+				filters.add(cb.equal(root.get("name"), rq.getName()));
+			}			
+			if(StringUtils.isNotBlank(rq.getStock()) && StringUtils.isNotEmpty(rq.getStock())) {
+				filters.add(cb.equal(root.get("stock"), rq.getStock()));
+			}			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		if(filters.isEmpty()) {
+			cq.select(root).orderBy(cb.asc(root.get("id")));
+		} else {
+			cq.select(root).where(filters.toArray(new Predicate[filters.size()])).orderBy(cb.asc(root.get("id")));
+		}
+		
+		TypedQuery<VideogameModel> query = em.createQuery(cq);
+		List<VideogameModel> results = query.getResultList();
+
+		List<VideogameDTO> dataDto = new ArrayList<>();
+		results.forEach(data -> {
+			dataDto.add(new VideogameDTO(data));
+		});
+		
+		if(dataDto.isEmpty()) return new VideogameResponse("1", null, "The list of products wasn't delivered.");
+		
+		return new VideogameResponse("0", dataDto, "The list of products was delivered.");
+		
+	}
 
 	// LIST ALL PRODUCTS
 	@Override

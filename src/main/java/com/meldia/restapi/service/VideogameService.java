@@ -4,6 +4,8 @@ import com.meldia.restapi.payload.VideogameRequest;
 import com.meldia.restapi.payload.VideogameResponse;
 
 public interface VideogameService {
+	
+	VideogameResponse filters(VideogameRequest rq);
 
 	VideogameResponse addProduct(VideogameRequest rq);
 
