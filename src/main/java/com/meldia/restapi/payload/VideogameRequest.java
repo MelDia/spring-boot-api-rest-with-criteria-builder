@@ -11,6 +11,7 @@ public class VideogameRequest {
 	private String description;
 	private String price;
 	private String stock;
+	private String active;
 
 	public Integer getId() {
 		return id;
@@ -51,5 +52,15 @@ public class VideogameRequest {
 	public void setStock(String stock) {
 		this.stock = stock;
 	}
+
+	public String getActive() {
+		return active;
+	}
+
+	public void setActive(String active) {
+		this.active = active;
+	}
+	
+	
 
 }

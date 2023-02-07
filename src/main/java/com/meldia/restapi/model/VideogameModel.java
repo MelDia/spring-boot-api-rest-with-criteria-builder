@@ -39,10 +39,14 @@ public class VideogameModel {
 	}
 
 	public VideogameModel(VideogameRequest rq) {
-		setName(rq.getName());
-		setDescription(rq.getDescription());
-		setPrice(rq.getPrice());
+		setName(DataComparatorUtil.comparator(rq.getName(), name));
+		setDescription(DataComparatorUtil.comparator(rq.getDescription(), description));
+		setPrice(DataComparatorUtil.comparator(rq.getPrice(), price));
+//		setName(rq.getName());
+//		setDescription(rq.getDescription());
+//		setPrice(rq.getPrice());
 		this.stock = rq.getStock().equals("0") ? "NO STOCK" : rq.getStock();
+		this.active = rq.getActive() != null ? rq.getActive() : "1";
 	}
 	
 	public void Update(VideogameRequest rq) {

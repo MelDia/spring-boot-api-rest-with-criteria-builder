@@ -22,37 +22,37 @@ public class VideogameServiceImpl implements VideogameService {
 
 	@Autowired
 	public VideogameRepository repository;
-	
+
 	@Autowired
 	public EntityManager em;
-	
-	// FILTERS 
+
+	// FILTERS
 	@Override
 	public VideogameResponse filters(VideogameRequest rq) {
-		
+
 		CriteriaBuilder cb = em.getCriteriaBuilder();
 		CriteriaQuery<VideogameModel> cq = cb.createQuery(VideogameModel.class);
 		Root<VideogameModel> root = cq.from(VideogameModel.class);
-		
+
 		List<Predicate> filters = new ArrayList<>();
-		
-		try {			
-			if(StringUtils.isNotBlank(rq.getName()) && StringUtils.isNotEmpty(rq.getName())) {
+
+		try {
+			if (StringUtils.isNotBlank(rq.getName()) && StringUtils.isNotEmpty(rq.getName())) {
 				filters.add(cb.equal(root.get("name"), rq.getName()));
-			}			
-			if(StringUtils.isNotBlank(rq.getStock()) && StringUtils.isNotEmpty(rq.getStock())) {
+			}
+			if (StringUtils.isNotBlank(rq.getStock()) && StringUtils.isNotEmpty(rq.getStock())) {
 				filters.add(cb.equal(root.get("stock"), rq.getStock()));
-			}			
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		if(filters.isEmpty()) {
+
+		if (filters.isEmpty()) {
 			cq.select(root).orderBy(cb.asc(root.get("id")));
 		} else {
 			cq.select(root).where(filters.toArray(new Predicate[filters.size()])).orderBy(cb.asc(root.get("id")));
 		}
-		
+
 		TypedQuery<VideogameModel> query = em.createQuery(cq);
 		List<VideogameModel> results = query.getResultList();
 
@@ -60,11 +60,12 @@ public class VideogameServiceImpl implements VideogameService {
 		results.forEach(data -> {
 			dataDto.add(new VideogameDTO(data));
 		});
-		
-		if(dataDto.isEmpty()) return new VideogameResponse("1", null, "The list of products wasn't delivered.");
-		
+
+		if (dataDto.isEmpty())
+			return new VideogameResponse("1", null, "The list of products wasn't delivered.");
+
 		return new VideogameResponse("0", dataDto, "The list of products was delivered.");
-		
+
 	}
 
 	// LIST ALL PRODUCTS
@@ -85,17 +86,15 @@ public class VideogameServiceImpl implements VideogameService {
 	@Override
 	public VideogameResponse addProduct(VideogameRequest rq) {
 
-		Boolean exists = exists(rq);
+		Boolean productExist = productExist(rq);
+		if (productExist == true) {
+			return new VideogameResponse("1", null, "The product already exists. You must modify the data.");
+		}
+
 		if (!(StringUtils.isAllEmpty(rq.getName(), rq.getDescription(), rq.getPrice(), rq.getStock()))) {
-			if (exists) {
-				return new VideogameResponse("1", null, "The product already exists.");
-
-			} else {
-				VideogameModel newVideogame = new VideogameModel(rq);
-				repository.save(newVideogame);
-
-				return new VideogameResponse("0", null, "The product was added.");
-			}
+			VideogameModel newVideogame = new VideogameModel(rq);
+			repository.save(newVideogame);
+			return new VideogameResponse("0", null, "The product was added.");
 
 		}
 		return new VideogameResponse("1", null, "The product wasn't added.");
@@ -122,11 +121,11 @@ public class VideogameServiceImpl implements VideogameService {
 		return new VideogameResponse("1", null, "The product wasn't updated or doesn't exist.");
 
 	}
-	
+
 	// INACTIVATE VIDEOGAME PRODUCT
 	@Override
 	public VideogameResponse inactivateProduct(VideogameRequest rq) {
-		
+
 		if (!(StringUtils.isAllEmpty(rq.getName(), rq.getDescription(), rq.getPrice(), rq.getStock()))) {
 
 			try {
@@ -142,12 +141,23 @@ public class VideogameServiceImpl implements VideogameService {
 
 		}
 		return new VideogameResponse("1", null, "The product wasn't inactivated or doesn't exist.");
-		
+
 	}
 
-	public boolean exists(VideogameRequest rq) {
-		VideogameModel exists = repository.exists(rq.getName(), rq.getDescription(), rq.getPrice(), rq.getStock());
-		return exists != null;
+	public boolean productExist(VideogameRequest rq) {
+		VideogameModel productExist = repository.productExist(rq.getName());
+
+		if (productExist == null) {
+			System.out.println("esta nulo");
+			return false;
+		}
+
+		if (productExist.getName().equalsIgnoreCase(rq.getName())) {
+			System.out.println("producto existe");
+			return true;
+		}
+		System.out.println("producto no existe");
+		return false;
 	}
 
 }
